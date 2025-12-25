@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Register New Doctor</title>
+</head>
+<body>
+    <h1>Register New Doctor</h1>
+    <form method="post">
+        <label>Full name:</label><br>
+        <input type="text" name="name" required><br><br>
+
+        <label>Specialty (optional):</label><br>
+        <input type="text" name="specialty"><br><br>
+
+        <button type="submit">Register Doctor</button>
+    </form>
+
+    <p><a href="{{ url_for('home') }}">Back to home</a></p>
+</body>
+</html>
