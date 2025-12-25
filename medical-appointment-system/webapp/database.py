@@ -1,7 +1,8 @@
 import sqlite3
 import os
 
-DB_NAME = "appointments.db"
+
+DB_NAME = "appointments_v2.db"
 
 def get_connection():
     """Create a connection to the SQLite database."""
@@ -11,46 +12,186 @@ def get_connection():
     return conn
 
 def init_db():
-    """Create the appointments table if it doesn't exist and add some sample data."""
+    """Create tables if they don't exist and seed basic data."""
     conn = get_connection()
     cur = conn.cursor()
 
-    # Create table if it doesn't exist
-    cur.execute("""
+    # Patients table
+    cur.execute(
+        """
+        CREATE TABLE IF NOT EXISTS patients (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            email TEXT
+        )
+        """
+    )
+
+    # Doctors table
+    cur.execute(
+        """
+        CREATE TABLE IF NOT EXISTS doctors (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            specialty TEXT
+        )
+        """
+    )
+
+    # Appointments table
+    cur.execute(
+        """
         CREATE TABLE IF NOT EXISTS appointments (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            patient_name TEXT NOT NULL,
-            doctor_name TEXT NOT NULL,
+            patient_id INTEGER NOT NULL,
+            doctor_id INTEGER NOT NULL,
             date TEXT NOT NULL,
             time TEXT NOT NULL,
-            reason TEXT
-        );
-    """)
+            reason TEXT,
+            FOREIGN KEY (patient_id) REFERENCES patients(id),
+            FOREIGN KEY (doctor_id) REFERENCES doctors(id)
+        )
+        """
+    )
 
-    # Check if there are already appointments
-    cur.execute("SELECT COUNT(*) AS count FROM appointments;")
-    row = cur.fetchone()
-    count = row["count"]
+    # Seed sample patients if empty
+    cur.execute("SELECT COUNT(*) AS count FROM patients")
+    if cur.fetchone()["count"] == 0:
+        cur.executemany(
+            "INSERT INTO patients (name, email) VALUES (?, ?)",
+            [
+                ("John Doe", "john@example.com"),
+                ("Jane Doe", "jane@example.com"),
+            ],
+        )
 
-    # If empty, insert some sample/fake data
-    if count == 0:
-        sample_data = [
-            ("John Doe", "Dr. Smith", "2025-01-15", "10:00", "General check-up"),
-            ("Jane Doe", "Dr. Adams", "2025-01-16", "14:30", "Follow-up visit"),
-        ]
-        cur.executemany("""
-            INSERT INTO appointments (patient_name, doctor_name, date, time, reason)
-            VALUES (?, ?, ?, ?, ?);
-        """, sample_data)
+    # Seed sample doctors if empty
+    cur.execute("SELECT COUNT(*) AS count FROM doctors")
+    if cur.fetchone()["count"] == 0:
+        cur.executemany(
+            "INSERT INTO doctors (name, specialty) VALUES (?, ?)",
+            [
+                ("Dr. Smith", "General Practitioner"),
+                ("Dr. Adams", "Cardiologist"),
+            ],
+        )
 
     conn.commit()
     conn.close()
 
 def get_all_appointments():
-    """Return all appointments as a list of rows."""
+    """All appointments with joined patient/doctor names."""
     conn = get_connection()
     cur = conn.cursor()
-    cur.execute("SELECT * FROM appointments ORDER BY date, time;")
+    cur.execute(
+        """
+        SELECT a.id,
+               p.name AS patient_name,
+               d.name AS doctor_name,
+               a.date,
+               a.time,
+               a.reason
+        FROM appointments a
+        JOIN patients p ON a.patient_id = p.id
+        JOIN doctors d ON a.doctor_id = d.id
+        ORDER BY a.date, a.time
+        """
+    )
+    rows = cur.fetchall()
+    conn.close()
+    return rows
+
+def get_all_patients():
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM patients ORDER BY name")
+    rows = cur.fetchall()
+    conn.close()
+    return rows
+
+def get_all_doctors():
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM doctors ORDER BY name")
+    rows = cur.fetchall()
+    conn.close()
+    return rows
+
+def create_patient(name, email):
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute(
+        "INSERT INTO patients (name, email) VALUES (?, ?)",
+        (name, email),
+    )
+    conn.commit()
+    conn.close()
+
+def create_doctor(name, specialty):
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute(
+        "INSERT INTO doctors (name, specialty) VALUES (?, ?)",
+        (name, specialty),
+    )
+    conn.commit()
+    conn.close()
+
+def create_appointment(patient_id, doctor_id, date, time, reason):
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute(
+        """
+        INSERT INTO appointments (patient_id, doctor_id, date, time, reason)
+        VALUES (?, ?, ?, ?, ?)
+        """,
+        (patient_id, doctor_id, date, time, reason),
+    )
+    conn.commit()
+    conn.close()
+
+def get_appointments_for_patient(patient_id):
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute(
+        """
+        SELECT a.id,
+               p.name AS patient_name,
+               d.name AS doctor_name,
+               a.date,
+               a.time,
+               a.reason
+        FROM appointments a
+        JOIN patients p ON a.patient_id = p.id
+        JOIN doctors d ON a.doctor_id = d.id
+        WHERE p.id = ?
+        ORDER BY a.date, a.time
+        """,
+        (patient_id,),
+    )
+    rows = cur.fetchall()
+    conn.close()
+    return rows
+
+def get_appointments_for_doctor(doctor_id):
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute(
+        """
+        SELECT a.id,
+               p.name AS patient_name,
+               d.name AS doctor_name,
+               a.date,
+               a.time,
+               a.reason
+        FROM appointments a
+        JOIN patients p ON a.patient_id = p.id
+        JOIN doctors d ON a.doctor_id = d.id
+        WHERE d.id = ?
+        ORDER BY a.date, a.time
+        """,
+        (doctor_id,),
+    )
     rows = cur.fetchall()
     conn.close()
     return rows
