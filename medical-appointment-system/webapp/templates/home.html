@@ -7,8 +7,16 @@
     <h1>Medical Appointment System</h1>
     <p>This is the web version of my Medical Appointment System project.</p>
 
-    <h2>Current Appointments</h2>
+    <h2>Menu</h2>
+    <ul>
+        <li><a href="{{ url_for('register_patient') }}">1. Register as new patient</a></li>
+        <li><a href="{{ url_for('book_appointment') }}">2. Book an appointment (Patient)</a></li>
+        <li><a href="{{ url_for('view_patient_appointments') }}">3. View my appointments (Patient)</a></li>
+        <li><a href="{{ url_for('register_doctor') }}">4. Register as new doctor</a></li>
+        <li><a href="{{ url_for('view_doctor_schedule') }}">5. View my schedule (Doctor)</a></li>
+    </ul>
 
+    <h2>All Appointments</h2>
     {% if appointments %}
         <table border="1" cellpadding="8" cellspacing="0">
             <thead>
@@ -37,5 +45,7 @@
     {% else %}
         <p>No appointments found.</p>
     {% endif %}
+
+    <p><a href="{{ url_for('home') }}">Back to home</a></p>
 </body>
 </html>
