@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Book Appointment</title>
+</head>
+<body>
+    <h1>Book an Appointment</h1>
+
+    <form method="post">
+        <label>Patient:</label><br>
+        <select name="patient_id" required>
+            <option value="">-- Select patient --</option>
+            {% for p in patients %}
+                <option value="{{ p.id }}">{{ p.name }}</option>
+            {% endfor %}
+        </select><br><br>
+
+        <label>Doctor:</label><br>
+        <select name="doctor_id" required>
+            <option value="">-- Select doctor --</option>
+            {% for d in doctors %}
+                <option value="{{ d.id }}">
+                    {{ d.name }}{% if d.specialty %} ({{ d.specialty }}){% endif %}
+                </option>
+            {% endfor %}
+        </select><br><br>
+
+        <label>Date:</label><br>
+        <input type="date" name="date" required><br><br>
+
+        <label>Time:</label><br>
+        <input type="time" name="time" required><br><br>
+
+        <label>Reason (optional):</label><br>
+        <textarea name="reason" rows="3" cols="30"></textarea><br><br>
+
+        <button type="submit">Book Appointment</button>
+    </form>
+
+    <p><a href="{{ url_for('home') }}">Back to home</a></p>
+</body>
+</html>
