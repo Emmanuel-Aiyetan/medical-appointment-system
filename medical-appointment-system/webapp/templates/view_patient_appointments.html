@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>View Patient Appointments</title>
+</head>
+<body>
+    <h1>View My Appointments (Patient)</h1>
+
+    <form method="post">
+        <label>Select patient:</label><br>
+        <select name="patient_id" required>
+            <option value="">-- Select patient --</option>
+            {% for p in patients %}
+                <option value="{{ p.id }}"
+                    {% if selected_patient_id and selected_patient_id|int == p.id %}selected{% endif %}>
+                    {{ p.name }}
+                </option>
+            {% endfor %}
+        </select>
+        <button type="submit">View Appointments</button>
+    </form>
+
+    {% if appointments %}
+        <h2>Appointments</h2>
+        <table border="1" cellpadding="8" cellspacing="0">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Doctor</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Reason</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for appt in appointments %}
+                    <tr>
+                        <td>{{ appt.id }}</td>
+                        <td>{{ appt.doctor_name }}</td>
+                        <td>{{ appt.date }}</td>
+                        <td>{{ appt.time }}</td>
+                        <td>{{ appt.reason }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% elif selected_patient_id %}
+        <p>No appointments found for this patient.</p>
+    {% endif %}
+
+    <p><a href="{{ url_for('home') }}">Back to home</a></p>
+</body>
+</html>
