@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>View Doctor Schedule</title>
+</head>
+<body>
+    <h1>View My Schedule (Doctor)</h1>
+
+    <form method="post">
+        <label>Select doctor:</label><br>
+        <select name="doctor_id" required>
+            <option value="">-- Select doctor --</option>
+            {% for d in doctors %}
+                <option value="{{ d.id }}"
+                    {% if selected_doctor_id and selected_doctor_id|int == d.id %}selected{% endif %}>
+                    {{ d.name }}{% if d.specialty %} ({{ d.specialty }}){% endif %}
+                </option>
+            {% endfor %}
+        </select>
+        <button type="submit">View Schedule</button>
+    </form>
+
+    {% if appointments %}
+        <h2>Appointments</h2>
+        <table border="1" cellpadding="8" cellspacing="0">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Patient</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Reason</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for appt in appointments %}
+                    <tr>
+                        <td>{{ appt.id }}</td>
+                        <td>{{ appt.patient_name }}</td>
+                        <td>{{ appt.date }}</td>
+                        <td>{{ appt.time }}</td>
+                        <td>{{ appt.reason }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% elif selected_doctor_id %}
+        <p>No appointments found for this doctor.</p>
+    {% endif %}
+
+    <p><a href="{{ url_for('home') }}">Back to home</a></p>
+</body>
+</html>
